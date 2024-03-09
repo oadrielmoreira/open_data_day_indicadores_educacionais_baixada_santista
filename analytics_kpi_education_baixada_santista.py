@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 
-kpis = pd.read_excel('C:/Users/adrie/OneDrive/Github/indicadores_educacionais_baixada_santista_open_data_day/open_data_day_indicadores_educacionais_baixada_santista/idicadores_educacionais.xlsx')
+kpis = pd.read_excel('./idicadores_educacionais.xlsx')
 
 def plot_analysis(df, colunas):
     for coluna in colunas:
