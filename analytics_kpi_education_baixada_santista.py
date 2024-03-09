@@ -2,9 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import norm
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 
 
-kpis = pd.read_excel('C:/Users/adrie/OneDrive/Github/tcc-dsa-usp-esalq/data/idicadores_educacionais.xlsx')
+kpis = pd.read_excel('C:/Users/adrie/OneDrive/Github/indicadores_educacionais_baixada_santista_open_data_day/open_data_day_indicadores_educacionais_baixada_santista/idicadores_educacionais.xlsx')
 
 def plot_analysis(df, colunas):
     for coluna in colunas:
@@ -37,10 +39,10 @@ def plot_analysis(df, colunas):
         else:
             print(f"A coluna '{coluna}' não existe no DataFrame ou não é numérica.")
 
-
 columns = ['afd', 'dsu', 'had','ied', 'ird', 'tdi', 'tx_rend_abandono', 'tx_rend_aprovacao','tx_rend_reprovacao']
-
 plot_analysis(kpis, columns)
+
+
 correlacao = kpis[columns].corr()
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlacao, annot=True, fmt=".2f", cmap='coolwarm')
@@ -49,17 +51,14 @@ plt.show()
 
 
 municipios_unicos = kpis[['municipio_id', 'municipio_name']].drop_duplicates().reset_index(drop=True)
-
-
 dfs_for_city = {}
-
 for index, row in kpis[['municipio_id', 'municipio_name']].drop_duplicates().iterrows():
     cidade_nome = row['municipio_name'].upper().replace(' ', '_')
     df_nome = f'kpi_{cidade_nome}'
     dfs_for_city[df_nome] = kpis[kpis['municipio_id'] == row['municipio_id']]
-
 df_cities = list(dfs_for_city.keys())
 df_cities
+
 
 
 def plot_city_correlations(dfs, columns):
@@ -70,7 +69,27 @@ def plot_city_correlations(dfs, columns):
         sns.heatmap(correlacao, annot=True, fmt=".2f", cmap='coolwarm')
         plt.title(f'Mapa de Correlação dos Indicadores Educacionais - {cidade_nome}')
         plt.show()
-
 plot_city_correlations(dfs_for_city, columns)
 
 
+
+
+kpis_clean = kpis.dropna(subset=['tx_rend_aprovacao'])
+X = kpis_clean.select_dtypes(include=['number']).drop(columns=['tx_rend_aprovacao'])
+X_filled = X.fillna(X.mean())
+y = kpis_clean['tx_rend_aprovacao']
+X_train, X_test, y_train, y_test = train_test_split(X_filled, y, test_size=0.2, random_state=0)
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+r_squared = model.score(X_test, y_test)
+print(f"R²: {r_squared}")
+
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, y_pred, alpha=0.5)
+plt.title('Valores Reais vs. Valores Previstos')
+plt.xlabel('Valores Reais')
+plt.ylabel('Valores Previstos')
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)  # Linha de perfeita previsão
+plt.show()
