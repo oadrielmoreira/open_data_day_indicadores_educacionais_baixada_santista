@@ -8,6 +8,9 @@ from sklearn.linear_model import LinearRegression
 
 kpis = pd.read_excel('./idicadores_educacionais.xlsx')
 
+kpis.head(10)
+
+
 def plot_analysis(df, colunas):
     for coluna in colunas:
         if coluna in df.columns and pd.api.types.is_numeric_dtype(df[coluna]):
